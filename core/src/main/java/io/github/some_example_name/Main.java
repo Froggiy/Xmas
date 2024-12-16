@@ -20,7 +20,7 @@ public class Main extends ApplicationAdapter {
     private Texture imgBlFlake;
     private Texture imgPrFlake;
     private Texture imgBackground;
-    public static OrthographicCamera camera;
+    public OrthographicCamera camera;
     private Vector3 touch;
     private Music mscInvierno;
     private Music mscGyat;
