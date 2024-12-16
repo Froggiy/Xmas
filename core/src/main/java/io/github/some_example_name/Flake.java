@@ -10,7 +10,6 @@ public class Flake {
     float x, y;
     float xStep, yStep;
     boolean isHit = false;
-    boolean hasHitten = false;
     Texture image;
 
     public Flake(Texture img,float x, float y) {

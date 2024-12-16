@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -20,13 +19,12 @@ public class Main extends ApplicationAdapter {
     private Texture imgBlFlake;
     private Texture imgPrFlake;
     private Texture imgBackground;
-    public static OrthographicCamera camera;
+    public OrthographicCamera camera;
     private Vector3 touch;
     private Music mscInvierno;
     private Music mscGyat;
     private Flake[] flakes = new Flake[200];
     private int flakesCounter;
-    private int restFlakes;
     private BitmapFont font;
     private String gameState;
     private long timeStartGame;
@@ -40,7 +38,6 @@ public class Main extends ApplicationAdapter {
         imgBackground = new Texture("back.jpg");
         mscInvierno = Gdx.audio.newMusic(Gdx.files.internal("invierno.wav"));
         mscGyat = Gdx.audio.newMusic(Gdx.files.internal("label.mp3"));
-        restFlakes = 200;
         for (int i = 0; i < flakes.length; i++) {
             flakes[i] = new Flake(imgBlFlake, MathUtils.random(0f, SCR_WIDTH), MathUtils.random(0f, SCR_HEIGHT+100));
         }
@@ -53,20 +50,20 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render() {
-        touches();
 
+        //events
+        touches();
         for (Flake f: flakes) {
             if (!f.isHit) {
                 f.fly();
             }
-            if (restFlakes == 0){
+            if (flakesCounter == 300){
                 gameState = "gameOver";
             }
         }
+        if (flakesCounter < 100) mscInvierno.play();
 
-        if (flakesCounter < 100) {
-            mscInvierno.play();
-        }
+        //draw
         batch.begin();
         batch.setProjectionMatrix(camera.combined);
         batch.draw(imgBackground, 0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -76,10 +73,11 @@ public class Main extends ApplicationAdapter {
                 batch.draw(f.image, f.x, f.y, 50, 50);
             }
             font.draw(batch, "collected: " + flakesCounter, 10, SCR_HEIGHT - 10);
-            font.draw(batch, timer(currentTime), SCR_WIDTH - 125, SCR_HEIGHT - 10);
+            font.draw(batch, showTime(currentTime), SCR_WIDTH - 125, SCR_HEIGHT - 10);
         }
+        //game over
         else {
-            font.draw(batch, timer(currentTime), SCR_WIDTH/2-45, SCR_HEIGHT/2);
+            font.draw(batch, showTime(currentTime), SCR_WIDTH/2-45, SCR_HEIGHT/2);
         }
         batch.end();
     }
@@ -94,31 +92,38 @@ public class Main extends ApplicationAdapter {
         mscGyat.dispose();
         font.dispose();
     }
-    private String timer(long time){
+    private String showTime(long time){
         long ms = time%1000;
         long s = time/1000%60;
         long m = time/1000/60%60;
         return m/10+m%10+":"+s/10+s%10+":"+ms/100;
     }
-    private void touches(){
-        if (Gdx.input.justTouched()){
+    private void touches()
+    {
+        if (Gdx.input.justTouched())
+        {
             touch.set(Gdx.input.getX(), Gdx.input.getY(), 0);
             camera.unproject(touch);
-            for (Flake f: flakes) {
-                if (f.hit(touch.x,touch.y)){
+            for (Flake f: flakes)
+            {
+                if (f.hit(touch.x,touch.y))
+                {
                     f.isHit = true;
-                    f.hasHitten = true;
                     f.image = imgPrFlake;
                     f.y =  MathUtils.random(SCR_HEIGHT, 2*SCR_HEIGHT);
                     flakesCounter ++;
-                    if (flakesCounter == 100){
-                        for (Flake y: flakes) {
+
+                    //2 stage
+                    if (flakesCounter == 100)
+                    {
+                        for (Flake y: flakes)
+                        {
                             y.isHit = false;
                         }
                         mscInvierno.stop();
                         mscGyat.play();
                     }
-                    if (flakesCounter > 100) restFlakes --;
+
                 }
             }
         }
